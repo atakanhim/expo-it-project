@@ -83,9 +83,9 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace 'com.hm.wardrobe'
+    namespace 'com.myproje.app'
     defaultConfig {
-        applicationId 'com.hm.wardrobe'
+        applicationId 'com.myproje.app'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

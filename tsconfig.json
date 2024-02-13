@@ -2,7 +2,7 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
-    "moduleResolution": "node",  // Eklenen satır
+    "moduleResolution": "node",
     "paths": {
       "@/*": [
         "././*"
@@ -12,8 +12,6 @@
   "include": [
     "**/*.ts",
     "**/*.tsx",
-    ".expo/types/**/*.ts",
-    "expo-env.d.ts",
-    "assets/**/*.png"  // Eklenen satır (resim dosyalarının yolu)
+    "assets/**/*.png"
   ]
 }
