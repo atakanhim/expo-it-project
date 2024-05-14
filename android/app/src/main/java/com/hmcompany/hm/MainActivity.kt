@@ -1,4 +1,4 @@
-package com.myproje.app
+package com.hmcompany.hm
 
 import android.os.Build
 import android.os.Bundle

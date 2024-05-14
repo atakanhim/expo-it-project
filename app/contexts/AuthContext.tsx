@@ -1,20 +1,20 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
+import { GoogleSignin, GoogleSigninButton } from "@react-native-google-signin/google-signin";
+import { User } from '@/constants/type';
+
 // import { GoogleSignin } from '@react-native-google-signin/google-signin';
-const TOKEN_KEY = process.env.EXPO_PUBLIC_TOKEN_KEY ?? " ";
-const API_URL = process.env.EXPO_PUBLIC_API_URL ?? " ";
+const key_id_token = process.env.EXPO_PUBLIC_USER_KEY ?? " ";
 
 
 const AuthContext = createContext<AuthProps>({});
 
 
 interface AuthProps {
-    authState?: { accessToken: string | null; refreshToken: string | null; authenticated: boolean | null };
+    authState?: { user: User | null; authenticated: boolean | null };
 
-    onRegister?: (nameSurname: string, userName: string, email: string, password: string, passwordConfirm: string) => Promise<any>;
-    onLogin?: (email: string, password: string) => Promise<any>;
-    onGoogleLogin?: (idToken: string | null) => Promise<any>;
+    onGoogleLogin?: () => Promise<any>;
     onLogout?: () => Promise<any>;
 }
 
@@ -23,26 +23,20 @@ interface AuthProps {
 // AuthProvider bileşeni ile context için bir value sağlıyoruz ve çocuk bileşenleri sarmalıyoruz
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
-    const [authState, setAuthState] = useState<{ accessToken: string | null; refreshToken: string | null; authenticated: boolean | null }>({
-        accessToken: null,
-        refreshToken: null,
+    const [authState, setAuthState] = useState<{ user: User | null; authenticated: boolean | null }>({
+        user: null,
         authenticated: null,
     });
 
     useEffect(() => {
         // Uygulama başladığında token kontrolü yapılıyor
         const bootstrapAsync = async () => {
-            let accToken: string | null = null;
-            let refToken: string | null = null;
-            try {
-                // Token secure store'dan alınıyor
-                accToken = await SecureStore.getItemAsync(TOKEN_KEY);
-            } catch (e) {
-                // Hata durumunda işlemler...
-            }
 
+            GoogleSignin.configure({
+                webClientId: "1080126022086-r2bos620ehl5ftb01uu71cn839s3mrmv.apps.googleusercontent.com"
+            });
             // AuthState güncelleniyor
-            setAuthState({ accessToken: accToken, refreshToken: refToken, authenticated: accToken ? true : true });
+
 
 
         };
@@ -50,85 +44,41 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         bootstrapAsync();
     }, []);
 
-    const onRegister = async (nameSurname: string, userName: string, email: string, password: string, passwordConfirm: string) => {
+
+    const onGoogleLogin = async () => {
         try {
-            const result = await axios.post(`${API_URL}/users/create`, { nameSurname, userName, email, password, passwordConfirm });
-            return result.data;
-        } catch (e) {
-            console.log(e);
-        }
-
-    };
-
-    const onLogin = async (email: string, password: string) => {
-        try {
-
-            const result = await axios.post(`${API_URL}/Auth/Login`, {
-                usernameOrEmail: email, // Kullanıcının gerçek adı veya e-posta adresi buraya
-                password: password // Gerçek şifre buraya
-            });
-
-            console.log("result:", result.data);
+            await GoogleSignin.hasPlayServices();
+            const user = await GoogleSignin.signIn()
+            await SecureStore.setItem(key_id_token, JSON.stringify(user.idToken));
             setAuthState({
-                accessToken: result.data.token.accessToken,
-                refreshToken: result.data.token.refreshToken,
+                user: user.user,
                 authenticated: true
             });
-
-            axios.defaults.headers.common['Authorization'] = `Bearer ${result.data.token.accessToken}`
-
-            await SecureStore.setItemAsync(TOKEN_KEY, result.data.token.accessToken)
-            return result;
-        } catch (e) {
-            console.log(e);
-        }
-    };
-    const onGoogleLogin = async (idToken: string | null) => {
-        try {
-
-            const result = await axios.post(`${API_URL}/Auth/google-login`, {
-                idToken: idToken, // Kullanıcının gerçek adı veya e-posta adresi buraya
-            });
-            console.log("result:", result.data);
-
-            setAuthState({
-                accessToken: result.data.token.accessToken,
-                refreshToken: result.data.token.refreshToken,
-                authenticated: true
-            });
-
-            axios.defaults.headers.common['Authorization'] = `Bearer ${result.data.token.accessToken}`
-            await SecureStore.setItemAsync(TOKEN_KEY, result.data.token.accessToken)
-
-            return result;
-        } catch (e) {
-            console.log(e);
+            return user.user;
+        } catch (error) {
+            console.log(error)
         }
     };
 
 
     const onLogout = async () => {
         // Kullanıcı çıkış işlemleri...
-        await SecureStore.deleteItemAsync(TOKEN_KEY);
-        axios.defaults.headers.common['Authorization'] = "";
+        await SecureStore.deleteItemAsync(key_id_token);
         setAuthState({
-            accessToken: null,
-            refreshToken: null,
+            user: null,
             authenticated: false
         });
-
-
-        // //google ile girdiyse -
-        // const isSignedIn = await GoogleSignin.isSignedIn();
-        // if (isSignedIn) {
-        //     GoogleSignin.revokeAccess();
-        //     GoogleSignin.signOut();
-        // }
+        //google ile girdiyse -
+        const isSignedIn = await GoogleSignin.isSignedIn();
+        if (isSignedIn) {
+            GoogleSignin.revokeAccess();
+            GoogleSignin.signOut();
+        }
 
     };
 
     return (
-        <AuthContext.Provider value={{ authState, onRegister, onLogin, onLogout, onGoogleLogin }}>
+        <AuthContext.Provider value={{ authState, onLogout, onGoogleLogin }}>
             {children}
         </AuthContext.Provider>
     );

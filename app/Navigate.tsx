@@ -20,7 +20,7 @@ const AuthStackScreen = () => ( // loginscreende props gönderemeye çaklışrı
 );
 
 const AppTabScreen = () => (
-    <AppTab.Navigator initialRouteName="HomeStackGroup" screenOptions={({ route, navigation }) => ({
+    <AppTab.Navigator initialRouteName="Profile" screenOptions={({ route, navigation }) => ({
         tabBarIcon: ({ focused, color, size }) => {
             let iconname: any;
 
@@ -39,7 +39,6 @@ const AppTabScreen = () => (
         tabBarInactiveTintColor: "gray"
 
     })}>
-
 
         <AppTab.Screen name="Profile" component={Screen1} />
         <AppTab.Screen name="HomeStackGroup" component={HomeStackGroup} options={{ headerShown: false, tabBarLabel: "Home" }} />
