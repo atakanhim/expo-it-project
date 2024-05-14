@@ -1,5 +1,4 @@
 {
-  "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
     "moduleResolution": "node",
@@ -13,5 +12,6 @@
     "**/*.ts",
     "**/*.tsx",
     "assets/**/*.png"
-  ]
+  ],
+  "extends": "expo/tsconfig.base"
 }
